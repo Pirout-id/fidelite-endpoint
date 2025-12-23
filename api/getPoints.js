@@ -1,3 +1,5 @@
+import fetch from "node-fetch";
+
 export default async function handler(req, res) {
   const email = req.query.email;
 
@@ -9,7 +11,8 @@ export default async function handler(req, res) {
   const baseId = process.env.AIRTABLE_BASE_ID;
   const tableName = "Untitled Base";
 
-  const url = `https://api.airtable.com/v0/${baseId}/${tableName}?filterByFormula=({Email}='${email}')`;
+  // Filtre en minuscule pour éviter les erreurs de casse
+  const url = `https://api.airtable.com/v0/${baseId}/${encodeURIComponent(tableName)}?filterByFormula=LOWER({Email})='${email.toLowerCase()}'`;
 
   try {
     const response = await fetch(url, {
@@ -29,10 +32,11 @@ export default async function handler(req, res) {
     return res.status(200).json({
       nom: client.Nom,
       points: client.Points,
-      recompense: client.Recompense || null
+      recompense: client["Récompenses"] || null
     });
 
   } catch (error) {
+    console.error(error);
     return res.status(500).json({ error: "Erreur serveur" });
   }
 }
